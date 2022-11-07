@@ -1,0 +1,60 @@
+//Create a Database and choose it to run next set of SQLs
+create database twitter;
+use twitter;
+
+//Create a notification integration for Azure Storage queue (connect Azure queue with Snowflakes)
+create notification integration SNOWPIPE_DEMO_NOTIFICATION_INT
+  enabled = true
+  type = queue
+  notification_provider = azure_storage_queue
+  azure_storage_queue_primary_uri = 'Azure queue url'
+  azure_tenant_id = 'Search Azure active directory ';
+
+//Check information
+desc integration SNOWPIPE_DEMO_NOTIFICATION_INT;
+
+//Create a storage integration for Azure Blob Storage 
+CREATE STORAGE INTEGRATION SNOWPIPE_DEMO_INT
+  TYPE = EXTERNAL_STAGE
+  STORAGE_PROVIDER = AZURE
+  ENABLED = TRUE
+  AZURE_TENANT_ID = 'Search Azure active directory'
+  STORAGE_ALLOWED_LOCATIONS = ('Location of Blob storage twitter container ')
+
+//Create a stage for Azure files
+CREATE STAGE MYSTAGE
+url = 'Folder in Blob storage twitter container'
+STORAGE_INTEGRATION= SNOWPIPE_DEMO_INT;
+
+//Create a table and external stage pointing to Azure Blob Storage 
+  create table twitter.public.dummy(input variant) //json format
+
+  create stage twitter.public.mystage
+  url = 'Folder in Blob storage twitter container'
+  storage_integration = SNOWPIPE_DEMO_INT;
+
+//Create a Snowpipe to load staged files automatically as soon as they land 
+CREATE PIPE twitter.public.mypipe
+  auto_ingest = true
+  integration = 'SNOWPIPE_DEMO_NOTIFICATION_INT' as
+  copy into twitter.public.feeds
+  from @twitter.public.mystage
+file_format = (type = 'JSON');
+
+//list all pipes in Snowflakes  
+show pipes
+
+//describe al pipe in Snowflakes  
+desc pipe mypipe
+
+//select rows from table
+select * from dummy
+
+select input:data[0]:public_metrics.like_count from twitter.public.dummy
+
+//check the pipe status in Snowflakes  
+ select SYSTEM$PIPE_STATUS( 'mypipe' )
+
+
+
+
