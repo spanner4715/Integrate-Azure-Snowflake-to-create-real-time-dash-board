@@ -1,0 +1,13 @@
+{
+	"data": [{
+		"id": "123",
+		"author_id": "145",
+		"text": "test message",
+		"public_metrics": {
+			"retweet_count": 0,
+			"reply_count": 0,
+			"like_count": 2,
+			"quote_count": 0
+		}
+	}]
+}
